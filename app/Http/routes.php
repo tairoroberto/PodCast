@@ -37,7 +37,7 @@ Route::group(['middleware' => 'web'], function () {
         $client = new Client();
         $list = array();
 
-        for($i = 0; $i <= 1700; $i+=5){
+        for($i = 0; $i <= 1700; $i+=20){
             // Check out the symfony.com subreddit and request the top posts from this month
             $crawler = $client->request('GET', 'https://www.eslpod.com/website/show_all.php?cat_id=-59456&low_rec='.$i);
 
@@ -51,7 +51,7 @@ Route::group(['middleware' => 'web'], function () {
             // elements which have a class of title then loop through the results using the each method
             $name = '';
             $achou = false;
-            $crawler->filter('span > a')->each(function ($node)use($name, $achou) {
+            $crawler->filter('span > a')->each(function ($node)use($name, $achou, $i) {
                 if($node->text() == 'Download Podcast'){
                     $name = substr($node->attr('href'),31);
                     $dir = dir('/var/www/ESL/');
@@ -59,10 +59,15 @@ Route::group(['middleware' => 'web'], function () {
                     while(($arquivo = $dir->read()) !== false){
                         if($name == $arquivo){
                             $achou = true;
+                            Log::info('Achou: '.$name);
                         }
                     }
 
                     if($achou == false){
+                        Log::info('Não achou: '.$name);
+                        Log::info('Página: '.$i);
+                        Log::info('Link: '.$node->attr('href'));
+                        Log::info('\n\n');
                         file_put_contents('/var/www/ESL/'.$name, fopen($node->attr('href'), 'r'));
                     }
                 }
